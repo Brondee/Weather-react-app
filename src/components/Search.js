@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
+import { useGlobalContext } from "../context";
 
-const Search = ({ setWeatherInfo, setLoading, setModal }) => {
+const Search = () => {
+  const { setWeatherInfo, setWeatherDaily, setLoading, setModal } =
+    useGlobalContext();
+
   const [query, setQuery] = useState("krasnodar");
   const [error, setError] = useState(false);
 
@@ -8,7 +12,9 @@ const Search = ({ setWeatherInfo, setLoading, setModal }) => {
     e.preventDefault();
     fetchWeatherData();
   };
-
+  useEffect(() => {
+    fetchWeatherData();
+  }, []);
   const fetchWeatherData = async () => {
     setLoading(true);
     try {
@@ -19,20 +25,22 @@ const Search = ({ setWeatherInfo, setLoading, setModal }) => {
       if (data[0]) {
         const { lat, lon } = data[0];
         const weatherResponse = await fetch(
-          `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=minutely,hourly,daily,alerts&units=metric&appid=f2b08dae49be3a968f6e9519e556f1cb`
+          `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=minutely,hourly,alerts&units=metric&appid=f2b08dae49be3a968f6e9519e556f1cb`
         );
         const weatherData = await weatherResponse.json();
         if (weatherData) {
-          const { temp, pressure, visibility, humidity, wind_speed } =
+          const { dt, temp, pressure, visibility, humidity, wind_speed } =
             weatherData.current;
           setWeatherInfo({
+            date: dt * 1000,
             temperature: parseInt(temp),
             city: query,
             pressure,
-            visibility: new String(visibility).substring(0, 2),
+            visibility: String(visibility).substring(0, 2),
             humidity,
             wind: wind_speed,
           });
+          setWeatherDaily(weatherData.daily);
           setError(false);
         } else {
           setModal({ show: true, text: "Can't find a city" });
@@ -49,10 +57,6 @@ const Search = ({ setWeatherInfo, setLoading, setModal }) => {
     }
     setLoading(false);
   };
-
-  useEffect(() => {
-    fetchWeatherData();
-  }, []);
 
   return (
     <form className="search-form" onSubmit={handleSubmit}>
