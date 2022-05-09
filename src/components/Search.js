@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { useGlobalContext } from "../context";
 
+// write here your api key, which you can get there https://openweathermap.org/api
+const apiKey = "";
+
 const Search = () => {
   const { setWeatherInfo, setWeatherDaily, setLoading, setModal } =
     useGlobalContext();
@@ -12,20 +15,18 @@ const Search = () => {
     e.preventDefault();
     fetchWeatherData();
   };
-  useEffect(() => {
-    fetchWeatherData();
-  }, []);
+
   const fetchWeatherData = async () => {
     setLoading(true);
     try {
       const response = await fetch(
-        `http://api.openweathermap.org/geo/1.0/direct?q=${query}&limit=1&appid=f2b08dae49be3a968f6e9519e556f1cb`
+        `http://api.openweathermap.org/geo/1.0/direct?q=${query}&limit=1&appid=${apiKey}`
       );
       const data = await response.json();
       if (data[0]) {
         const { lat, lon } = data[0];
         const weatherResponse = await fetch(
-          `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=minutely,hourly,alerts&units=metric&appid=f2b08dae49be3a968f6e9519e556f1cb`
+          `https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=minutely,hourly,alerts&units=metric&appid=${apiKey}`
         );
         const weatherData = await weatherResponse.json();
         if (weatherData) {
@@ -57,6 +58,10 @@ const Search = () => {
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    fetchWeatherData();
+  }, []);
 
   return (
     <form className="search-form" onSubmit={handleSubmit}>
